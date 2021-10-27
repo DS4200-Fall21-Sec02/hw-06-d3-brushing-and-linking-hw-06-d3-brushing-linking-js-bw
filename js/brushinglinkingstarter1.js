@@ -20,6 +20,7 @@ var svg2 = d3
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+// create bar chart
 var svg3 = d3.select("#dataviz_bar_chart")
   .append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -174,12 +175,12 @@ d3.csv("data/iris.csv").then((data) => {
   }
 
   //TODO: Barchart with counts of different species
-d3.csv("data/species_count.csv").then(function(data) {
+d3.csv("data/species_count.csv").then(function(data1) {
 
 // X axis
 const x3 = d3.scaleBand()
   .range([ 0, width ])
-  .domain(data.map(d => d.species))
+  .domain(data1.map(d => d.species))
   .padding(0.2);
 
 svg3.append("g")
@@ -197,16 +198,18 @@ svg3.append("g")
   .call(d3.axisLeft(y3));
 
 // Bars
-svg3.selectAll("mybar")
-  .data(data)
+var myBars = svg3.selectAll("mybar")
+  .data(data1)
   .join("rect")
     .attr("x", d => x3(d.species))
     .attr("y", d => y3(d.species_count))
     .attr("width", x3.bandwidth())
     .attr("height", d => height - y3(d.species_count))
-    .attr("fill", "#69b3a2");
+// assign the same colors as the scatter plots
+    .attr("fill", function (d) {
+        return color(d.species);
+      })
 
-})
 
 
 
@@ -224,7 +227,6 @@ svg3.selectAll("mybar")
     .call( d3.brush()                 // Add the brush feature using the d3.brush function
       .extent( [ [0,0], [width,height] ] ) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
       .on("start brush", updateChart1) // Each time the brush selection changes, trigger the 'updateChart' function
-      .on("brush end", updateBarchart) // Each time the brush selection changes, trigger the 'updateChart' function
 
     )
 
@@ -240,41 +242,34 @@ svg3.selectAll("mybar")
     function updateChart1(brushEvent) {
         extent = brushEvent.selection;
       var selectedSpecies = new Set();
+    // update the dots of scatter1 based upon selection 
+    myCircle1.classed("selected", function(d){ 
+  
+	    if  (isBrushed(extent, x1(d.Sepal_Length), y1(d.Petal_Length))) {
+		selectedSpecies.add(d.Species)
+		}
 
-    myCircle1.classed("selected", function(d){ return isBrushed(extent, x2(d.Sepal_Width), y2(d.Petal_Width) ) } )
-    
-        //TODO: Check all the circles that are within the brush region in Scatterplot 1
- 
-    
-        //TODO: Select all the data points in Scatterplot 2 which have the same id as those selected in Scatterplot 1
-      
+
+	    return isBrushed(extent, x2(d.Sepal_Width), y2(d.Petal_Width) ) } )
+	// update the bars based upon the selection
+	myBars.classed("selected", function(d) {
+
+		console.log(selectedSpecies)
+		console.log(d)
+
+		return selectedSpecies.has(d.species)
+	}
+	)      
     }
 
     //Is called when we brush on scatterplot #2
     function updateChart2(brushEvent) {
-      extent = brushEvent.selection;
+      extent = brushEvent.selection
       var selectedSpecies = new Set();
-    myCircle2.classed("selected", function(d){ 
+    myCircle2.classed("selected", function(d){
 	    return isBrushed(extent, x1(d.Sepal_Length), y1(d.Petal_Length) ) } )
-
-
     }
 
-    //Is called when we brush on scatterplot #2
-    function updateBarchart(brushEvent) {
-      extent = brushEvent.selection;
-      var selectedSpecies = new Set();
-	    console.log('barchart update has been called');
-    function(d){ 
-	    if  (isBrushed(extent, x1(d.Sepal_Length), y1(d.Petal_Length))) {
-		selectedSpecies.add(d.species)
-		}
-		console.log(selectedSpecies);
-
-
-    } 
-
-    }
 
 
     //Finds dots within the brushed region
@@ -287,4 +282,7 @@ svg3.selectAll("mybar")
         y1 = brush_coords[1][1];
       return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1; // This return TRUE or FALSE depending on if the points is in the selected area
     }
+	
+})
+
 });
