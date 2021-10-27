@@ -103,10 +103,6 @@ d3.csv("data/iris.csv").then((data) => {
         return color(d.Species);
       })
       .style("opacity", 0.5);
-
-    //TODO: Define a brush
-
-    //TODO: Add brush to the svg
     
   }
 
@@ -245,7 +241,7 @@ var myBars = svg3.selectAll("mybar")
     // update the dots of scatter1 based upon selection 
     myCircle1.classed("selected", function(d){ 
   
-	    if  (isBrushed(extent, x1(d.Sepal_Length), y1(d.Petal_Length))) {
+	    if  (isBrushed(extent, x2(d.Sepal_Width), y2(d.Petal_Width))) {
 		selectedSpecies.add(d.Species)
 		}
 
